@@ -3,7 +3,7 @@ package com.example.android.pets;
 import android.content.ContentValues;
 import android.content.Intent;
 import android.database.Cursor;
-import android.database.sqlite.SQLiteDatabase;
+import android.net.Uri;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v7.app.AppCompatActivity;
@@ -27,7 +27,7 @@ public class CatalogActivity extends AppCompatActivity {
         setContentView(R.layout.activity_catalog);
 
         // Setup FAB to open EditorActivity
-        FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
+        FloatingActionButton fab = findViewById(R.id.fab);
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -44,11 +44,6 @@ public class CatalogActivity extends AppCompatActivity {
      * the pets database.
      */
     private void displayDatabaseInfo() {
-        // To access our database, we instantiate our subclass of SQLiteOpenHelper
-        // and pass the context, which is the current activity.
-
-        // Create and/or open a database to read from it
-        SQLiteDatabase db = mDbHelper.getReadableDatabase();
 
         // defining project
         String[] projection = {
@@ -58,13 +53,19 @@ public class CatalogActivity extends AppCompatActivity {
                 PetEntry.COLUMN_PET_GENDER,
                 PetEntry.COLUMN_PET_WEIGHT
         };
-        Cursor cursor = db.query(PetEntry.TABLE_NAME,projection,null,null,null,null,null);
+
+
+        Cursor cursor = getContentResolver().query(PetEntry.CONTENT_URI,
+                projection,
+                null,
+                null,
+                null);
 
 
         try {
             // Display the number of rows in the Cursor (which reflects the number of rows in the
             // pets table in the database).
-            TextView displayView = (TextView) findViewById(R.id.text_view_pet);
+            TextView displayView = findViewById(R.id.text_view_pet);
             displayView.setText("Number of rows in pets database table: " + cursor.getCount());
             displayView.append("\n"+PetEntry._ID + " - " +
                     PetEntry.COLUMN_PET_NAME + " - " +
@@ -98,6 +99,7 @@ public class CatalogActivity extends AppCompatActivity {
         } finally {
             // Always close the cursor when you're done reading from it. This releases all its
             // resources and makes it invalid.
+            assert cursor != null;
             cursor.close();
         }
     }
@@ -105,14 +107,12 @@ public class CatalogActivity extends AppCompatActivity {
      * Helper method to insert hardcoded pet data into the database. For debugging purposes only.
      */
     private void insertPet() {
-        SQLiteDatabase db = mDbHelper.getWritableDatabase();
         ContentValues values = new ContentValues();
         values.put(PetEntry.COLUMN_PET_NAME,"oto");
         values.put(PetEntry.COLUMN_PET_BREED,"chutiya");
         values.put(PetEntry.COLUMN_PET_GENDER,PetEntry.GENDER_MALE);
         values.put(PetEntry.COLUMN_PET_WEIGHT,7);
-
-        long newRowId = db.insert(PetEntry.TABLE_NAME,null,values);
+        Uri newUri = getContentResolver().insert(PetEntry.CONTENT_URI, values);
     }
 
 
